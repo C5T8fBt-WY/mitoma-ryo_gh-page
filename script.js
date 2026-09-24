@@ -1,5 +1,4 @@
-const translations = {
-  en: {
+const english = {
     skip: "Skip to content",
     navLabel: "Page navigation",
     languageLabel: "Display language",
@@ -31,70 +30,49 @@ const translations = {
     qrShow: "Show page QR code",
     qrHide: "Hide QR code",
     qrAlt: "QR code linking to this profile page"
-  },
-  ja: {
-    skip: "本文へスキップ",
-    navLabel: "ページ内ナビゲーション",
-    languageLabel: "表示言語",
-    navAbout: "概要",
-    navResearch: "研究",
-    navWork: "研究業績",
-    navContact: "連絡先",
-    affiliation: "横浜国立大学大学院 環境情報学府 情報環境専攻 博士課程後期",
-    labLink: "島研究室",
-    emailButtonLabel: "メール",
-    githubLink: "GitHub",
-    researchTitle: "研究テーマ",
-    topicOneTitle: "少ない例から学ぶ方法",
-    topicOneCopy: "正解が分からないデータも活用し、予測に役立つ情報を見極めます。",
-    topicTwoTitle: "人の動きとリズムゲーム",
-    topicTwoCopy: "姿勢から行動を読み取る仕組みや、譜面を自動で作る方法に取り組んでいます。",
-    workTitle: "主な研究業績",
-    workOneCitation: "三苫 凌・迎田 隆幸・島 圭介，「Neural Tangent Kernelを導入したData Shapley型疑似ラベル法に関する基礎検討」，人工知能学会全国大会論文集，第40回，5Yin-A-53，2026.",
-    paperLink: "論文",
-    codeLink: "コード",
-    demoLink: "デモ",
-    workTwoCitation: "R. Mitoma, T. Mukaeda, K. Shima, H. Kai, M. Suzuki, and K. Kato, “Behavior Monitoring System Leveraging Human Pose Estimation,” Proceedings of the 2025 IEEE/SICE International Symposium on System Integration (SII), pp. 1010–1015, 2025.",
-    ipsj2023Citation: "三苫 凌・迎田 隆幸・島 圭介，「混合余事象分布に基づく未学習推定畳込みニューラルネット」，情報処理学会第85回全国大会講演論文集，Vol. 2023, No. 1, pp. 469–470，7S-02，2023.",
-    ipsj2023Award: "情報処理学会第85回全国大会 大会奨励賞",
-    awardLink: "受賞者一覧",
-    routeCitation: "三苫 凌，「深層学習によるリズムゲーム譜面の自動生成モデルの改善」，横浜国立大学 2021年度ROUTE成果発表会，2022.",
-    routeAward: "最優秀研究発表賞",
-    routeAwardLink: "受賞記事",
-    qrShow: "このページの QR コードを表示",
-    qrHide: "QR コードを隠す",
-    qrAlt: "プロフィールページへの QR コード"
-  }
 };
 
+// Japanese wording is the text and labels in index.html. Capture it before
+// switching languages so edits to the HTML remain authoritative.
+const japaneseText = new Map(
+  [...document.querySelectorAll("[data-i18n]")].map((element) => [element, element.textContent])
+);
+const japaneseAriaLabels = new Map(
+  [...document.querySelectorAll("[data-i18n-aria-label]")].map((element) => [element, element.getAttribute("aria-label")])
+);
+const japaneseAltText = new Map(
+  [...document.querySelectorAll("[data-i18n-alt]")].map((element) => [element, element.alt])
+);
+const descriptionMeta = document.querySelector('meta[name="description"]');
+const japaneseDescription = descriptionMeta.content;
+const japaneseTitle = document.title;
+
 function setLanguage(language) {
-  const messages = translations[language] ?? translations.en;
   document.documentElement.lang = language;
 
   document.querySelectorAll("[data-i18n]").forEach((element) => {
-    const message = messages[element.dataset.i18n];
-    if (message) element.textContent = message;
+    const message = language === "ja" ? japaneseText.get(element) : english[element.dataset.i18n];
+    if (message !== undefined) element.textContent = message;
   });
 
   document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
-    const message = messages[element.dataset.i18nAriaLabel];
-    if (message) element.setAttribute("aria-label", message);
+    const message = language === "ja" ? japaneseAriaLabels.get(element) : english[element.dataset.i18nAriaLabel];
+    if (message !== undefined && message !== null) element.setAttribute("aria-label", message);
   });
 
   document.querySelectorAll("[data-i18n-alt]").forEach((element) => {
-    const message = messages[element.dataset.i18nAlt];
-    if (message) element.alt = message;
+    const message = language === "ja" ? japaneseAltText.get(element) : english[element.dataset.i18nAlt];
+    if (message !== undefined) element.alt = message;
   });
 
   document.querySelectorAll("[data-language]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.language === language));
   });
 
-  const description = language === "ja"
-    ? "三苫 凌 — 横浜国立大学大学院 環境情報学府 情報環境専攻 博士課程後期。"
+  descriptionMeta.content = language === "ja"
+    ? japaneseDescription
     : "Ryo Mitoma — Doctoral Program in Information Environment, Yokohama National University.";
-  document.querySelector('meta[name="description"]').setAttribute("content", description);
-  document.title = language === "ja" ? "Ryo Mitoma | 三苫 凌" : "Ryo Mitoma | Profile";
+  document.title = language === "ja" ? japaneseTitle : "Ryo Mitoma | Profile";
 
   try {
     localStorage.setItem("profile-language", language);
